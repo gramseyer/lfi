@@ -89,6 +89,15 @@ static size_t bundle(Verifier* v) {
 static struct MacroInst macroinst_call(Verifier* v, uint8_t* buf, size_t size) {
     size_t bundlesize = bundle(v);
 
+    uint64_t alignment_mask = 0;
+    if (bundlesize == 16) {
+        alignment_mask = 0xffff'ffff'ffff'fff0;
+    } else if (bundlesize == 32) {
+        alignment_mask = 0xffff'ffff'ffff'ffe0;
+    } else {
+        return (struct MacroInst){-1, 0};
+    }
+
     // andl $0xffffffe0, %eX
     // orq %r14, %rX
     // nop*
@@ -120,7 +129,7 @@ static struct MacroInst macroinst_call(Verifier* v, uint8_t* buf, size_t size) {
             FD_OP_TYPE(&i_and, 0) != FD_OT_REG ||
             FD_OP_SIZE(&i_and, 0) != 4 ||
             FD_OP_TYPE(&i_and, 1) != FD_OT_IMM ||
-            FD_OP_IMM(&i_and, 1) != 0xffffffffffffffe0)
+            FD_OP_IMM(&i_and, 1) != alignment_mask)
         return (struct MacroInst){-1, 0};
 
     if (FD_TYPE(&i_or) != FDI_OR ||
