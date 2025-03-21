@@ -89,6 +89,7 @@ static size_t bundle(Verifier* v) {
 static struct MacroInst macroinst_call(Verifier* v, uint8_t* buf, size_t size) {
     size_t bundlesize = bundle(v);
 
+    // mask to enforce jump target is aligned to the bundle size
     uint64_t alignment_mask = 0;
     if (bundlesize == 16) {
         alignment_mask = 0xffff'ffff'ffff'fff0;
